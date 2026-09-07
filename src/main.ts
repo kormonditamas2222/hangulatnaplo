@@ -3,7 +3,7 @@ import './style.css'
 const url = "https://retoolapi.dev/70PygG/data"
 const diaryForm = document.getElementById("diary") as HTMLFormElement;
 
-async function loadData() {
+export async function loadData() {
   try {
     const response = await fetch(url);
     if (!response.ok) {
@@ -17,6 +17,7 @@ async function loadData() {
     if (error instanceof Error) {
       console.error(error.message);
     }
+    throw error;
   }
 }
 
