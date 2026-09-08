@@ -3,7 +3,7 @@ import './style.css';
 import { loadData } from './main.ts';
 const url = "https://retoolapi.dev/70PygG/data";
 const diaryForm = document.getElementById("diary") as HTMLFormElement;
-const diaryTable = document.getElementById("diaryTable") as HTMLTableElement;
+const diaryTable = document.getElementById("diaryTable") as HTMLTableSectionElement;
 const submitButton = document.getElementById("submit") as HTMLButtonElement;
 const changeFormButton = document.getElementById("change") as HTMLButtonElement;
 
@@ -13,7 +13,6 @@ function init() {
 
 async function tablazat() {
     const data: DataEntry[] =  await loadData();
-    const tbody = document.createElement("tbody");
     for (const datapoint of data) {
         const tr = document.createElement("tr");
         const moodcell = document.createElement("td");
@@ -29,16 +28,18 @@ async function tablazat() {
         changeButton.classList.add("btn", "btn-warning");
         changeButton.textContent = "Change";
         changeButton.addEventListener("click", () => {
-            const formData = new FormData(diaryForm);
-            formData.set("mood", datapoint.mood);
-            formData.set("entry", datapoint.entry);
-            formData.set("date", datapoint.date.toString());
+            (document.getElementById("mood") as HTMLSelectElement).value = datapoint.mood;
+            (document.getElementById("entry") as HTMLInputElement).value = datapoint.entry;
+            const dateString = new Date(datapoint.date).toISOString().split('T')[0];
+            (document.getElementById("date") as HTMLInputElement).value = dateString;
+            
             submitButton.hidden = true;
             changeFormButton.hidden = false;
             changeFormButton.addEventListener("click", async (e) => {
                 e.preventDefault();
                 try {
-                    const row: NewEntry = {mood: formData.get("mood")!.toString(), entry: formData.get("entry")!.toString(), date: new Date(formData.get("date")!.toString())};
+                    const updatedFormData = new FormData(diaryForm);
+                    const row: NewEntry = {mood: updatedFormData.get("mood")!.toString(), entry: updatedFormData.get("entry")!.toString(), date: new Date(updatedFormData.get("date")!.toString())};
                     const response = await fetch(`${url}/${datapoint.id}`, {
                         method: "PUT",
                         headers: {
@@ -49,6 +50,8 @@ async function tablazat() {
                     if (!response.ok) {
                         throw new Error("Hiba a módosítás során")
                     }
+                    diaryTable.innerHTML = "";
+                    tablazat();
                 }
                 catch (error) {
                     if (error instanceof Error) {
@@ -57,16 +60,36 @@ async function tablazat() {
                     throw error;
                 }
                 finally {
-                    diaryForm.reset;
+                    diaryForm.reset();
                     submitButton.hidden = false;
                     changeFormButton.hidden = true;
                 }
-            })
-        })
+            }, {once: true});
+        });
         tr.appendChild(changeButton);
-        tbody.appendChild(tr);
+        const delButton = document.createElement("button");
+        delButton.classList.add("btn", "btn-danger");
+        delButton.textContent = "Delete";
+        delButton.addEventListener("click", async () => {
+            try {
+                const response = await fetch(`${url}/${datapoint.id}`, {
+                    method: "DELETE"
+                });
+                if (!response.ok) {
+                    throw new Error("Hiba a törlés közben");
+                }
+                diaryTable.innerHTML = "";
+                tablazat();
+            }
+            catch (error) {
+                if (error instanceof Error) {
+                    console.error(error.message);
+                }
+            }
+        })
+        tr.appendChild(delButton);
+        diaryTable.appendChild(tr);
     }
-    diaryTable.appendChild(tbody);
 }
 
 diaryForm.addEventListener("submit", async (e) => {
