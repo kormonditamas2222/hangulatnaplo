@@ -40,6 +40,7 @@ diaryForm.addEventListener("submit", async (e) => {
     if (!response.ok) {
       throw new Error("Hiba a mentés közben");
     }
+    alert("Successful submission");
     diaryForm.reset();
     loadData();
   }

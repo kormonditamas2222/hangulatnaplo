@@ -22,7 +22,7 @@ async function tablazat() {
         textcell.textContent = datapoint.entry;
         tr.appendChild(textcell);
         const datecell = document.createElement("td");
-        datecell.textContent = datapoint.date.toString();;
+        datecell.textContent = new Date(datapoint.date).toISOString().split('T')[0];
         tr.appendChild(datecell);
         const changeButton = document.createElement("button");
         changeButton.classList.add("btn", "btn-warning");
