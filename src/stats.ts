@@ -12,7 +12,6 @@ async function init() {
         const data = await response.json() as DataEntry[];
         console.log(data)
         stats(data);
-
     }
     catch (error) {
         if (error instanceof Error) {
